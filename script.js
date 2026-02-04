@@ -1,15 +1,16 @@
 const config = {
     type: Phaser.AUTO,
     scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.RESIZE,   // ✅ فول‌اسکرین واقعی
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 800,
-        height: 600,
+        width: window.innerWidth,
+        height: window.innerHeight,
     },
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: 0 }
+            gravity: { y: 0 },
+            debug: false
         }
     },
     scene: {
@@ -44,12 +45,25 @@ function preload() {
 }
 
 function create() {
+    // بک‌گراند
     this.cameras.main.setBackgroundColor('#0A0A2A');
 
-    player = this.physics.add.sprite(400, 300, 'astronaut');
+    // سازگاری با resize (موبایل / چرخش صفحه)
+    this.scale.on('resize', (gameSize) => {
+        const { width, height } = gameSize;
+        this.cameras.resize(width, height);
+    });
+
+    // بازیکن
+    player = this.physics.add.sprite(
+        this.scale.width / 2,
+        this.scale.height / 2,
+        'astronaut'
+    );
     player.setCollideWorldBounds(true);
     player.setScale(1.5);
 
+    // انیمیشن‌ها
     this.anims.create({
         key: 'walk',
         frames: this.anims.generateFrameNumbers('astronaut', { start: 1, end: 8 }),
@@ -63,12 +77,20 @@ function create() {
         frameRate: 20
     });
 
+    // کنترل کیبورد
     cursors = this.input.keyboard.createCursorKeys();
 
+    // ایستگاه سؤال
     stations = this.physics.add.staticGroup();
-    const s = this.add.circle(600, 200, 20, 0x00ff00, 0.6);
-    this.physics.add.existing(s, true);
-    stations.add(s);
+    const station = this.add.circle(
+        this.scale.width * 0.75,
+        this.scale.height * 0.35,
+        20,
+        0x00ff00,
+        0.7
+    );
+    this.physics.add.existing(station, true);
+    stations.add(station);
 
     this.physics.add.overlap(player, stations, hitStation);
 }
@@ -78,20 +100,22 @@ function update() {
     let moving = false;
 
     if (cursors.left.isDown) {
-        player.setVelocityX(-160);
+        player.setVelocityX(-180);
         player.setFlipX(true);
         moving = true;
-    } else if (cursors.right.isDown) {
-        player.setVelocityX(160);
+    } 
+    else if (cursors.right.isDown) {
+        player.setVelocityX(180);
         player.setFlipX(false);
         moving = true;
     }
 
     if (cursors.up.isDown) {
-        player.setVelocityY(-160);
+        player.setVelocityY(-180);
         moving = true;
-    } else if (cursors.down.isDown) {
-        player.setVelocityY(160);
+    } 
+    else if (cursors.down.isDown) {
+        player.setVelocityY(180);
         moving = true;
     }
 
